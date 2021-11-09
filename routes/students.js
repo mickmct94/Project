@@ -1,41 +1,41 @@
-var express = require('express')
+const express = require('express')
 const db = require("../db");
 
 var router = express.Router()
 
 //error handler for put,post,delete
 function asyncErrHandler(callBack) {
-    return async function (req, res, next) {
-      try {
-        await callBack(req, res, next);
-      } catch (err) {
-        next(err);
-      }
+  return async function (req, res, next) {
+    try {
+      await callBack(req, res, next);
+    } catch (err) {
+      next(err);
     }
   }
-  
-  //GET STUDENTS
-  router.get("/students", async function (req, res, next) {
-    try {
-      const students = await db.getStudents();
-      res.send(students);
-    } catch(err) {
+}
+
+//GET STUDENTS
+router.get("/students", async function (req, res, next) {
+  try {
+    const students = await db.getStudents();
+    res.send(students);
+  } catch (err) {
     next(err)
-    }
-    }
-    );
-  
-  //GET STUDENTS BY STUDENT NUMBER
-  router.get("/students/:studentNumber", async function (req, res, next) {
+  }
+}
+);
+
+//GET STUDENTS BY STUDENT NUMBER
+router.get("/students/:studentNumber", async function (req, res, next) {
   try {
     const students = await db.getStudentByID(req.params.studentNumber);
     res.send(students);
-  } catch(err) {
-  next(err)
+  } catch (err) {
+    next(err)
   }
-  }
-  );
- //GET STUDENTS BY NAME (F&L)
+}
+);
+
 
 module.exports = router;
 
