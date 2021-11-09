@@ -9,7 +9,7 @@ router.get("/meetings/:meetingID", async function (req, res, next) {
         res.send(meetings);
     } catch (err) {
         next(err);
-    }
+     }
 })
 
 
