@@ -1,5 +1,6 @@
+const { query } = require('express');
 const express = require('express')
-const db = require("../db");
+const db = require("../db/db.Config&Queries");
 
 var router = express.Router()
 
@@ -14,17 +15,6 @@ function asyncErrHandler(callBack) {
   }
 }
 
-//GET STUDENTS
-router.get("/students", async function (req, res, next) {
-  try {
-    const students = await db.getStudents();
-    res.send(students);
-  } catch (err) {
-    next(err)
-  }
-}
-);
-
 //GET STUDENTS BY STUDENT NUMBER
 router.get("/students/:studentNumber", async function (req, res, next) {
   try {
@@ -35,6 +25,40 @@ router.get("/students/:studentNumber", async function (req, res, next) {
   }
 }
 );
+
+//GET STUDENTS BY QUERY PARAMS
+router.get("/students", async function (req, res, next) {
+  
+const userInput = [];
+
+if(req.query.studentNumber){
+  userInput.push("studentNumber = " + "'" +req.query.studentNumber+ "'");
+}
+if(req.query.fName){
+  userInput.push("firstName = " + "'" +req.query.fName+ "'");
+}
+if(req.query.lName){
+  userInput.push("lastName = " + "'" +req.query.lName+ "'");
+}
+if(req.query.DOB){
+  userInput.push("DOB = " + "'" +req.query.DOB+ "'");
+}
+if(req.query.admitTerm){
+  userInput.push("admitTermID = "+ "'" +req.query.admitTerm+ "'");
+}
+if(req.query.email){
+  userInput.push("email = "+ "'" +req.query.lName+ "'");
+}
+
+try {
+  const students = await db.getStudentsQuery(userInput.map(function(element){
+    return "student."+element;
+  }));
+  res.send(students);
+} catch (err) {
+  next(err)
+}})
+
 
 
 module.exports = router;

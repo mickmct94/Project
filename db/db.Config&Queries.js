@@ -3,42 +3,16 @@ const mysql = require("mysql");
 const pool = mysql.createPool({
     connectionLimit: 10,
     host: "localhost",
-    user: "pmcteggart01",
-    password: "L4wvRvJ3DQyNvRH6",
-    database: "pmcteggart01"
+    user: "root",
+    password: "A4wW[)nn@R(NH9VP",
+    database: "projectpractice"
 })
-
-
-const getStudents = function () {
-
-    return new Promise(function (resolve, reject) {
-
-        pool.getConnection(function (err, connection) {
-
-            if (err) reject(err)
-
-            connection.query("SELECT * FROM student", function (err, data) {
-                connection.release();
-
-                if (err) reject(err);
-                else {
-                    const students = data;
-                    resolve(students);
-                }
-
-            })
-
-        })
-    })
-}
 
 const getStudentByID = function (params) {
 
     return new Promise(function (resolve, reject) {
 
         pool.getConnection(function (err, connection) {
-
-
 
             connection.query("SELECT * FROM `student` WHERE studentNumber = ?;", params, function (err, data) {
                 connection.release();
@@ -55,26 +29,35 @@ const getStudentByID = function (params) {
     })
 }
 
-const getModules = function () {
+const getStudentsQuery = function (queryConditions) {
+
 
     return new Promise(function (resolve, reject) {
 
+        var query;
+
+        if (!Array.isArray(queryConditions) || !queryConditions.length) {
+            query = 'SELECT * FROM student;'
+        } else {
+            query = 'SELECT * FROM student WHERE ' + queryConditions.join(' AND ');
+        }
+
         pool.getConnection(function (err, connection) {
 
-            if (err) reject(err)
+            if (err) reject(err);
 
-            connection.query("SELECT * FROM module", function (err, data) {
+            connection.query(query, function (err, data) {
+
                 connection.release();
 
                 if (err) reject(err);
                 else {
-                    const modules = data;
-                    resolve(modules);
+                    const students = data;
+                    resolve(students);
                 }
-
             })
-
         })
+
     })
 }
 
@@ -98,6 +81,36 @@ const getModulesByCatlogNumber = function (params) {
             })
 
         })
+    })
+}
+
+const getModules = function (queryConditions) {
+    return new Promise(function (resolve, reject) {
+
+        var query;
+
+        if (!Array.isArray(queryConditions) || !queryConditions.length) {
+            query = 'SELECT * FROM module;'
+        } else {
+            query = 'SELECT * FROM module WHERE ' + queryConditions.join(' AND ');
+        }
+console.log(query)
+        pool.getConnection(function (err, connection) {
+
+            if (err) reject(err);
+
+            connection.query(query, function (err, data) {
+
+                connection.release();
+
+                if (err) reject(err);
+                else {
+                    const modules = data;
+                    resolve(modules);
+                }
+            })
+        })
+
     })
 }
 
@@ -239,7 +252,6 @@ const getMeeetingsByID = function (params) {
     })
 }
 module.exports = {
-    getStudents,
     getStudentByID,
     getModules,
     getModulesByCatlogNumber,
@@ -248,5 +260,7 @@ module.exports = {
     getPrograms,
     getProgramsByCode,
     getMeeetings,
-    getMeeetingsByID
+    getMeeetingsByID,
+    getStudentsQuery
 };
+
