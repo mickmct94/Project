@@ -1,6 +1,6 @@
 const { query } = require('express');
 const express = require('express')
-const db = require("../db/db.Config&Queries");
+const studentQueryHandler = require("../db/studentQueries");
 
 var router = express.Router()
 
@@ -18,7 +18,7 @@ function asyncErrHandler(callBack) {
 //GET STUDENTS BY STUDENT NUMBER
 router.get("/students/:studentNumber", async function (req, res, next) {
   try {
-    const students = await db.getStudentByID(req.params.studentNumber);
+    const students = await studentQueryHandler.getStudentsbyStudentNumber(req.params.studentNumber);
     res.send(students);
   } catch (err) {
     next(err)
@@ -28,36 +28,51 @@ router.get("/students/:studentNumber", async function (req, res, next) {
 
 //GET STUDENTS BY QUERY PARAMS
 router.get("/students", async function (req, res, next) {
-  
-const userInput = [];
 
-if(req.query.studentNumber){
-  userInput.push("studentNumber = " + "'" +req.query.studentNumber+ "'");
-}
-if(req.query.fName){
-  userInput.push("firstName = " + "'" +req.query.fName+ "'");
-}
-if(req.query.lName){
-  userInput.push("lastName = " + "'" +req.query.lName+ "'");
-}
-if(req.query.DOB){
-  userInput.push("DOB = " + "'" +req.query.DOB+ "'");
-}
-if(req.query.admitTerm){
-  userInput.push("admitTermID = "+ "'" +req.query.admitTerm+ "'");
-}
-if(req.query.email){
-  userInput.push("email = "+ "'" +req.query.lName+ "'");
-}
+  const userInput = [];
+  const moduleUserInput = [];
 
-try {
-  const students = await db.getStudentsQuery(userInput.map(function(element){
-    return "student."+element;
-  }));
-  res.send(students);
-} catch (err) {
-  next(err)
-}})
+  const addStudentQueryParams = function (userInput) {
+    if (req.query.studentNumber) {
+      userInput.push("student.studentNumber = " + "'" + req.query.studentNumber + "'");
+    }
+    if (req.query.fName) {
+      userInput.push("student.firstName = " + "'" + req.query.fName + "'");
+    }
+    if (req.query.lName) {
+      userInput.push("student.lastName = " + "'" + req.query.lName + "'");
+    }
+    if (req.query.DOB) {
+      userInput.push("student.DOB = " + "'" + req.query.DOB + "'");
+    }
+    if (req.query.admitTerm) {
+      userInput.push("student.admitTermID = " + "'" + req.query.admitTerm + "'");
+    }
+    if (req.query.email) {
+      userInput.push("student.email = " + "'" + req.query.email + "'");
+    }
+  }
+  addStudentQueryParams(userInput)
+ 
+  const addModuleQueryParams = function (moduleUserInput) {
+
+    if (req.query.moduleCatalogNumber) {
+      moduleUserInput.push("studentModule.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'");
+    }
+    if (req.query.moduleDescription) {
+      moduleUserInput.push("studentModule.moduleDescription = " + "'" + req.query.moduleDescription + "'");
+    }
+
+  }
+  addModuleQueryParams(moduleUserInput);
+
+  try {
+    const students = await studentQueryHandler.getStudentsQuery(userInput,moduleUserInput);
+    res.send(students);
+  } catch (err) {
+    next(err)
+  }
+})
 
 
 

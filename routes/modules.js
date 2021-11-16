@@ -1,12 +1,12 @@
 const express = require('express')
-const db = require("../db/db.Config&Queries");
+const moduleQueryHandler = require("../db/moduleQueeries");
 
 var router = express.Router();
 
 //GET MODULES BY CATALOG NUMBER
 router.get("/modules/:catalogNumber", async function (req, res, next) {
   try {
-    const modules = await db.getModulesByCatlogNumber(req.params.catalogNumber);
+    const modules = await moduleQueryHandler.getModulesByCatlogNumber(req.params.catalogNumber);
     res.send(modules);
   } catch (err) {
     next(err);
@@ -44,7 +44,7 @@ router.get("/modules", async function (req, res, next) {
   console.log(userInput);
 
   try {
-    const modules = await db.getModules(userInput.map(function (element) {
+    const modules = await moduleQueryHandler.getModules(userInput.map(function (element) {
       return "module." + element;
     }));
     res.send(modules);
