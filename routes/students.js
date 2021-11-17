@@ -29,103 +29,92 @@ router.get("/students/:studentNumber", async function (req, res, next) {
 //GET STUDENTS BY QUERY PARAMS
 router.get("/students", async function (req, res, next) {
 
-  const userInput = [];
-  const moduleUserInput = [];
-  const programUserInput = [];
+  const returnInfo = [req.query.studentDetails, req.query.studentAcademicReacord];
 
-  const addStudentQueryParams = function (userInput) {
-    if (req.query.studentNumber) {
-      userInput.push("student.studentNumber = " + "'" + req.query.studentNumber + "'");
-    }
-    if (req.query.fName) {
-      userInput.push("student.firstName = " + "'" + req.query.fName + "'");
-    }
-    if (req.query.lName) {
-      userInput.push("student.lastName = " + "'" + req.query.lName + "'");
-    }
-    if (req.query.DOB) {
-      userInput.push("student.DOB = " + "'" + req.query.DOB + "'");
-    }
-    if (req.query.admitTerm) {
-      userInput.push("student.admitTermID = " + "'" + req.query.admitTerm + "'");
-    }
-    if (req.query.email) {
-      userInput.push("student.email = " + "'" + req.query.email + "'");
-    }
-  }
-  addStudentQueryParams(userInput);
- 
-  const addModuleQueryParams = function (moduleUserInput) {
+  const addStudentQueryParams = function (queryParams) {
 
-    if (req.query.moduleCatalogNumber) {
-      moduleUserInput.push("module.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'");
-    }
-    if (req.query.moduleDescription) {
-      moduleUserInput.push("module.moduleDescription = " + "'" + req.query.moduleDescription + "'");
-    }
-    if (req.query.moduleLevel) {
-      moduleUserInput.push("module.moduleLevel = " + "'" + req.query.moduleLevel + "'");
-    }
-    if (req.query.moduleAssessmentType) {
-      moduleUserInput.push("module.assessmentTypeID = " + "'" + req.query.moduleAssessmentType + "'");
-    }
-    if (req.query.moduleSession) {
-      moduleUserInput.push("module.sessionID = " + "'" + req.query.moduleSession + "'");
-    }
-    if (req.query.moduleUnits) {
-      moduleUserInput.push("module.units = " + "'" + req.query.moduleUnits + "'");
-    }
-    if (req.query.moduleCore) {
-      moduleUserInput.push("module.core = " + "'" + req.query.moduleCore + "'");
-    }
-    if (req.query.moduleTerm) {
-      moduleUserInput.push("module.moduleTermID = " + "'" + req.query.moduleTerm + "'");
-    }
+    const studentQueryParams = [req.query.studentNumber, req.query.fName, req.query.lName, req.query.DOB, req.query.admitTerm, req.query.email];
 
-    if (req.query.moduleSubject) {
-      moduleUserInput.push("module.moduleDescription = " + "'" + req.query.moduleDescription + "'");
-    }
-  
-  }
-  addModuleQueryParams(moduleUserInput);
+    const studentSQLStrings = [
+      "student.studentNumber = " + "'" + req.query.studentNumber + "'",
+      "student.firstName = " + "'" + req.query.fName + "'",
+      "student.lastName = " + "'" + req.query.lName + "'",
+      "student.DOB = " + "'" + req.query.DOB + "'",
+      "student.admitTermID = " + "'" + req.query.admitTerm + "'",
+      "student.email = " + "'" + req.query.email + "'"
+    ]
 
-  const addProgramQueryParams = function (programUserInput) {
-    if (req.query.programCode) {
-      programUserInput.push("program.programCode = " + "'" + req.query.programCode + "'");
-    }
-    if (req.query.programDescription) {
-      programUserInput.push("program.programDescription = " + "'" + req.query.programDescription + "'");
-    }
-    if (req.query.programAcademicLoad) {
-      programUserInput.push("program.academicLoad = " + "'" + req.query.programAcademicLoad + "'");
-    }
-    if (req.query.programCareer) {
-      programUserInput.push("program.careerID = " + "'" + req.query.programCareer + "'");
-    }
-    if (req.query.programAcademicOrg) {
-      programUserInput.push("program.academicOrgID = " + "'" + req.query.programAcademicOrg + "'");
-    }
-    if (req.query.programAcademicPlan) {
-      programUserInput.push("program.academicPlanID = " + "'" + req.query.programAcademicPlan + "'");
-    }
-    if (req.query.programStartTerm) {
-      programUserInput.push("program.startTermID = " + "'" + req.query.programStartTerm + "'");
-    }
-    if (req.query.programCampus) {
-      programUserInput.push("program.campusID = " + "'" + req.query.programCampus + "'");
-    }
+    const studentParamsfiltered = studentSQLStrings.filter(function (element, index) {
+
+      if (!studentQueryParams[index]) { return false } else return true;
+    })
+
+    return studentParamsfiltered;
+
   }
 
-addProgramQueryParams(programUserInput);
+
+
+  const addModuleQueryParams = function (queryParams) {
+
+    const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject];
+
+    const moduleSQLStrings = [
+      "module.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'",
+      "module.moduleDescription = " + "'" + req.query.moduleDescription + "'",
+      "module.moduleLevel = " + "'" + req.query.moduleLevel + "'",
+      "module.assessmentTypeID = " + "'" + req.query.moduleAssessmentType + "'",
+      "module.sessionID = " + "'" + req.query.moduleSession + "'",
+      "student.core = " + "'" + req.query.moduleCore + "'",
+      "student.units = " + "'" + req.query.moduleTerm + "'",
+      "student.moduleTermID = " + "'" + req.query.moduleTerm + "'"
+    ]
+
+    const moduleParamsfiltered = moduleSQLStrings.filter(function (element, index) {
+
+      if (!moduleQueryParams[index]) { return false } else return true;
+    })
+
+    return moduleParamsfiltered;
+
+  }
+
+
+  const addProgramQueryParams = function (queryParams) {
+
+    const programQueryParams = [req.query.programCode, req.query.programDescription, req.query.programAcademicLoad, req.query.programCareer, req.query.programAcademicOrg, req.query.programAcademicPlan, req.query.programStartTerm, req.query.programCampus];
+
+    const programSQLStrings = [
+      "program.programCode = " + "'" + req.query.programCode + "'",
+      "program.programDescription = " + "'" + req.query.programDescription + "'",
+      "program.academicLoadID = " + "'" + req.query.programAcademicLoad + "'",
+      "program.careerID = " + "'" + req.query.programCareer + "'",
+      "program.academicOrgID = " + "'" + req.query.programAcademicOrg + "'",
+      "program.academicPlanID = " + "'" + req.query.programAcademicPlan + "'",
+      "program.startTermID = " + "'" + req.query.programStartTerm + "'",
+      "program.campusID = " + "'" + req.query.programCampus + "'"
+    ]
+
+    const programParamsfiltered = programSQLStrings.filter(function (element, index) {
+
+      if (!programQueryParams[index]) { return false } else return true;
+    })
+
+    return programParamsfiltered;
+
+  }
+
+  const studentQueryParams = addStudentQueryParams(req.query);
+  const moduleQueryParams = addModuleQueryParams(req.query);
+  const programQueryParams = addProgramQueryParams(req.query);
+
   try {
-    const students = await studentQueryHandler.getStudentsQuery(userInput,moduleUserInput,programUserInput);
+    const students = await studentQueryHandler.getStudentsByQueryParams(studentQueryParams, moduleQueryParams, programQueryParams, studentQueryHandler.getStudentsQueryBuilder);
     res.send(students);
   } catch (err) {
     next(err)
   }
 })
-
-
 
 module.exports = router;
 
@@ -134,7 +123,6 @@ module.exports = router;
 
 
 
-//GET STUDENTS BY MODULE
 //GET STUDENTS BY A FLAG
 //GET STUDENTS BY PROGRAM (TERM)
 //GET STUDENTS BY ACADEMIC SUB PLAN

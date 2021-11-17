@@ -30,8 +30,8 @@ app.use(function (err, req, res, next) {
   res.json({
     error: {
       message: err.message,
-      status: err.status
-
+      status: err.status,
+      stack : err.stack
     }
   })
 })
