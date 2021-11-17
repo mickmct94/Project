@@ -31,6 +31,7 @@ router.get("/students", async function (req, res, next) {
 
   const userInput = [];
   const moduleUserInput = [];
+  const programUserInput = [];
 
   const addStudentQueryParams = function (userInput) {
     if (req.query.studentNumber) {
@@ -52,22 +53,72 @@ router.get("/students", async function (req, res, next) {
       userInput.push("student.email = " + "'" + req.query.email + "'");
     }
   }
-  addStudentQueryParams(userInput)
+  addStudentQueryParams(userInput);
  
   const addModuleQueryParams = function (moduleUserInput) {
 
     if (req.query.moduleCatalogNumber) {
-      moduleUserInput.push("studentModule.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'");
+      moduleUserInput.push("module.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'");
     }
     if (req.query.moduleDescription) {
-      moduleUserInput.push("studentModule.moduleDescription = " + "'" + req.query.moduleDescription + "'");
+      moduleUserInput.push("module.moduleDescription = " + "'" + req.query.moduleDescription + "'");
+    }
+    if (req.query.moduleLevel) {
+      moduleUserInput.push("module.moduleLevel = " + "'" + req.query.moduleLevel + "'");
+    }
+    if (req.query.moduleAssessmentType) {
+      moduleUserInput.push("module.assessmentTypeID = " + "'" + req.query.moduleAssessmentType + "'");
+    }
+    if (req.query.moduleSession) {
+      moduleUserInput.push("module.sessionID = " + "'" + req.query.moduleSession + "'");
+    }
+    if (req.query.moduleUnits) {
+      moduleUserInput.push("module.units = " + "'" + req.query.moduleUnits + "'");
+    }
+    if (req.query.moduleCore) {
+      moduleUserInput.push("module.core = " + "'" + req.query.moduleCore + "'");
+    }
+    if (req.query.moduleTerm) {
+      moduleUserInput.push("module.moduleTermID = " + "'" + req.query.moduleTerm + "'");
     }
 
+    if (req.query.moduleSubject) {
+      moduleUserInput.push("module.moduleDescription = " + "'" + req.query.moduleDescription + "'");
+    }
+  
   }
   addModuleQueryParams(moduleUserInput);
 
+  const addProgramQueryParams = function (programUserInput) {
+    if (req.query.programCode) {
+      programUserInput.push("program.programCode = " + "'" + req.query.programCode + "'");
+    }
+    if (req.query.programDescription) {
+      programUserInput.push("program.programDescription = " + "'" + req.query.programDescription + "'");
+    }
+    if (req.query.programAcademicLoad) {
+      programUserInput.push("program.academicLoad = " + "'" + req.query.programAcademicLoad + "'");
+    }
+    if (req.query.programCareer) {
+      programUserInput.push("program.careerID = " + "'" + req.query.programCareer + "'");
+    }
+    if (req.query.programAcademicOrg) {
+      programUserInput.push("program.academicOrgID = " + "'" + req.query.programAcademicOrg + "'");
+    }
+    if (req.query.programAcademicPlan) {
+      programUserInput.push("program.academicPlanID = " + "'" + req.query.programAcademicPlan + "'");
+    }
+    if (req.query.programStartTerm) {
+      programUserInput.push("program.startTermID = " + "'" + req.query.programStartTerm + "'");
+    }
+    if (req.query.programCampus) {
+      programUserInput.push("program.campusID = " + "'" + req.query.programCampus + "'");
+    }
+  }
+
+addProgramQueryParams(programUserInput);
   try {
-    const students = await studentQueryHandler.getStudentsQuery(userInput,moduleUserInput);
+    const students = await studentQueryHandler.getStudentsQuery(userInput,moduleUserInput,programUserInput);
     res.send(students);
   } catch (err) {
     next(err)
