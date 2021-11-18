@@ -53,8 +53,6 @@ router.get("/students", async function (req, res, next) {
 
   }
 
-
-
   const addModuleQueryParams = function (queryParams) {
 
     const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject];
@@ -78,7 +76,6 @@ router.get("/students", async function (req, res, next) {
     return moduleParamsfiltered;
 
   }
-
 
   const addProgramQueryParams = function (queryParams) {
 
@@ -104,12 +101,48 @@ router.get("/students", async function (req, res, next) {
 
   }
 
+  const addFlagQueryParams = function (queryParams) {
+
+    const flagQueryParams = [req.query.flagID, req.query.flagDescription]
+
+    const flagSQLStrings = [
+      "flag.flagID = " + "'" + req.query.flagID + "'",
+      "flag.flagDescription = " + "'" + req.query.flagDescription+ "'",
+    ]
+
+    const flagParamsFiltered = flagSQLStrings.filter(function(element, index){
+      if (!flagQueryParams[index]) { return false } else return true;
+    })
+
+    return flagParamsFiltered;
+
+  }
+
+  const addMeetingQueryParams = function(queryParams) {
+
+    const meetingQueryParams = [req.query.meetingID ,req.query.meetingDate, req.query.meetingOutcomeAdvice, req.query.meetingOutcomeProgressionIssue];
+    
+    const meetingQLStrings = [
+      "meeting.meetingID = " + "'" + req.query.meetingID + "'",
+      "meeting.meetingDateTime = " + "'" + req.query.meetingDate + "'",
+      "meetingoutcome.adviceGivenID = " + "'" + req.query.meetingOutcomeAdvice + "'",
+      "meetingOutcome.progressionIssuesDiscussed = " + "'" + req.query.meetingOutcomeProgressionIssue + "'"
+        ]
+
+        const meetingParamsFiltered = meetingSQLStrings.filter(function(element, index){
+          if (!meetingQueryParams[index]) { return false } else return true;
+        })
+  }
+
+
   const studentQueryParams = addStudentQueryParams(req.query);
   const moduleQueryParams = addModuleQueryParams(req.query);
   const programQueryParams = addProgramQueryParams(req.query);
+  const flagQueryParams = addFlagQueryParams(req.query);
+  const meetingQueryParams = addMeetingQueryParams(req.query);
 
   try {
-    const students = await studentQueryHandler.getStudentsByQueryParams(studentQueryParams, moduleQueryParams, programQueryParams, studentQueryHandler.getStudentsQueryBuilder);
+    const students = await studentQueryHandler.getStudentsByQueryParams(studentQueryParams, moduleQueryParams, programQueryParams, flagQueryParams, meetingQueryParams, studentQueryHandler.getStudentsQueryBuilder);
     res.send(students);
   } catch (err) {
     next(err)

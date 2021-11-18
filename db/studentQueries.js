@@ -1,16 +1,19 @@
 const dbPool = require("./config");
 
 
-const getStudentsQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams) {
+const getStudentsQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams, flagQueryParams, meetingQueryParams) {
 
     var query;
         
-    //Get by student and module query params
      query = "SELECT student.studentNumber, student.firstName, student.lastName ,student.DOB, student.admitTermID, student.email, student.startLevel, student.currentLevel, studentModule.catalogNumber, program.programCode"
      + " FROM student JOIN studentmodule ON student.studentNumber = studentmodule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE "
      + studentQueryParams.join(' AND ')
     + (moduleQueryParams.length > 0 ? " AND " + moduleQueryParams.join(' AND ') : "" )
    + (programQueryParams.length > 0 ? " AND " + programQueryParams.join(' AND ') : "" )
+   + (flagQueryParams.length > 0 ? " AND " + flagQueryParams.join(' AND ') : "" )
+   + (meetingQueryParams.length > 0 ? " AND " + meetingQueryParams.join(' AND ') : "" )
+
+
     console.log(query)
     return query;
 }
@@ -41,9 +44,9 @@ const getStudentsbyStudentNumber = function (studentNumber) {
     })
 }
 
-const getStudentsByQueryParams = function (studentQueryParams, moduleQueryParams, programQueryParams, getStudentsQueryBuilder) {
+const getStudentsByQueryParams = function (studentQueryParams, moduleQueryParams, programQueryParams, flagQueryParams, meetingQueryParams, getStudentsQueryBuilder) {
 
-    query = getStudentsQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams);
+    query = getStudentsQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams, flagQueryParams, meetingQueryParams);
   
     return new Promise(function (resolve, reject) {
 
