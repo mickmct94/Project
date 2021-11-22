@@ -1,6 +1,6 @@
 const { query } = require('express');
 const express = require('express')
-const studentQueryHandler = require("../db/studentQueries");
+const queryBuilder = require("../db/queryBuilder");
 
 var router = express.Router()
 
@@ -16,10 +16,10 @@ function asyncErrHandler(callBack) {
 }
 
 //GET STUDENTS BY QUERY PARAMS
-router.get("/students", async function (req, res, next) {
-
+router.get("/students/", async function (req, res, next) {
+console.log(req.app)
   try {
-    const students = await studentQueryHandler.getStudentsByQueryParams(req, studentQueryHandler.getStudentsQueryParamChecker);
+    const students = await queryBuilder.getStudentsByQueryParams(req, queryBuilder.queryParamChecker);
     res.send(students);
   } catch (err) {
     next(err)
@@ -27,19 +27,19 @@ router.get("/students", async function (req, res, next) {
 
 })
 
-router.post("/students", async function (req, res, next) {
+router.post("/students/", async function (req, res, next) {
   
   try {
-    await studentQueryHandler.postStudents(req, studentQueryHandler.postStudentsQueryParamChecker);
+    await queryBuilder.postStudents(req, queryBuilder.postStudentsQueryParamChecker);
   } catch (err) {
     next(err)
   }
 })
 
-router.put("/students", async function (req, res, next) {
+router.put("/students/", async function (req, res, next) {
 
   try {
-    await studentQueryHandler.getStudentsQueryParamChecker(req);
+    await queryBuilder.queryParamChecker(req);
     res.send("OK");
   } catch (err) {
     next(err)
