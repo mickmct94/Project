@@ -30,7 +30,7 @@ router.get("/students/", async function (req, res, next) {
 router.post("/students/", async function (req, res, next) {
   
   try {
-    await queryBuilder.postStudents(req, queryBuilder.postStudentsQueryParamChecker);
+    await queryBuilder.postQueeries(req);
     res.send("OK")
   } catch (err) {
     next(err)

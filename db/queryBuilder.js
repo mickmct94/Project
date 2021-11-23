@@ -29,7 +29,7 @@ const queryParamChecker = function (req) {
 
   const addModuleQueryParams = function (req) {
 
-    const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject];
+    const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleSession, req.query.moduleUnits, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject, req.query.moduleProgramCode];
 
     const moduleSQLStrings = [
       "module.catalogNumber = " + "'" + req.query.moduleCatalogNumber + "'",
@@ -37,9 +37,12 @@ const queryParamChecker = function (req) {
       "module.moduleLevel = " + "'" + req.query.moduleLevel + "'",
       "module.assessmentTypeID = " + "'" + req.query.moduleAssessmentType + "'",
       "module.sessionID = " + "'" + req.query.moduleSession + "'",
-      "student.core = " + "'" + req.query.moduleCore + "'",
-      "student.units = " + "'" + req.query.moduleTerm + "'",
-      "student.moduleTermID = " + "'" + req.query.moduleTerm + "'"
+      "module.core = " + "'" + req.query.moduleCore + "'",
+      "module.units = " + "'" + req.query.units + "'",
+      "module.moduleTermID = " + "'" + req.query.moduleTerm + "'",
+      "module.programCode = " + "'" + req.query.moduleProgramCode + "'",
+      "module.moduleSubjectID = " + "'" + req.query.moduleSubject + "'"
+    
     ]
 
     const moduleParamsfiltered = moduleSQLStrings.filter(function (element, index) {
@@ -121,10 +124,6 @@ const queryParamChecker = function (req) {
 
   }
 
-
-
-
-
 const getByQueryParams = function (req, queryParamChecker) {
 
   const sqlQuery = queryParamChecker(req);
@@ -167,7 +166,7 @@ const getQueryBuilder = function (studentQueryParams, moduleQueryParams, program
     + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
     + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
 
-  }
+  } 
 
   
   if(reqPath === "/modules/") {
@@ -181,27 +180,38 @@ const getQueryBuilder = function (studentQueryParams, moduleQueryParams, program
 
 }
 
-const postStudentsQueryParamChecker = function (req) {
+const postQueryBuilder = function (req) {
+
+if(req.method === "POST" && req.path === "/students/") {
 
   const studentQueryParams = [req.query.studentNumber, req.query.fName, req.query.lName, req.query.DOB, req.query.admitTerm, req.query.email, req.query.currentLevel, req.query.startLevel];
 
-  const sqlQuery = postStudentQueryBuilder(studentQueryParams);
-
-  return sqlQuery;
-}
-
-const postStudentQueryBuilder = function (studentQueryParams) {
-
-
-  const sqlQuery = "INSERT INTO student (`studentNumber`,`firstName`,`lastName`,`DOB`,`admitTermID`,`email`,`currentLevel`,`startLevel`) VALUES ("
+  return "INSERT INTO student (`studentNumber`,`firstName`,`lastName`,`DOB`,`admitTermID`,`email`,`currentLevel`,`startLevel`) VALUES ("
     + "'" + studentQueryParams.join("' ,'") + "')";
-
-  return sqlQuery;
 }
 
-const postStudents = function (req, postStudentsQueryParamChecker) {
+if(req.method === "POST" && req.path === "/modules/") {
+ 
+  const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleUnits, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject, req.query.moduleProgramCode];
 
-  const sqlQuery = postStudentsQueryParamChecker(req);
+  return "INSERT INTO `module` (`catalogNumber`, `moduleDescription`, `moduleLevel`, `units`, `assessmentTypeID`, `sessionID`, `core`, `moduleTermID`, `subjectID`, `programCode`) VALUES ("
+  + "'" + moduleQueryParams.join("' ,'") + "')";
+
+}
+
+if(req.method === "POST" && req.path === "/programs/") {
+ 
+  const programQueryParams = [req.query.programCode, req.query.programDescription, req.query.programAcademicLoad, req.query.programCareer, req.query.programAcademicOrg, req.query.programAcademicPlan, req.query.programStartTerm, req.query.programCampus];
+
+  return "INSERT INTO `program` (`programCode`, `programDescription`, `academicLoadID`, `careerID`, `academicOrgID`, `academicPlanID`, `startTermID`, `campusID`) VALUES ("
+    + "'" + programQueryParams.join("' ,'") + "')";
+}
+  
+}
+
+const postQueeries = function (req) {
+
+  const sqlQuery = postQueryBuilder(req);
 
   return new Promise(function (resolve, reject) {
 
@@ -269,9 +279,8 @@ module.exports = {
   getByQueryParams,
   getQueryBuilder,
   queryParamChecker,
-  postStudentsQueryParamChecker,
-  postStudentQueryBuilder,
-  postStudents,
+  postQueryBuilder,
+  postQueeries,
   putStudents,
   putStudentQueryBuilder,
 };
