@@ -1,10 +1,8 @@
 
 const express = require("express");
 const studentRoutes = require("./routes/students");
-const moduleRoutes = require("./routes/modules");
-const flagRoutes = require("./routes/flags");
 const programRoutes = require("./routes/programs");
-const meetingRoutes = require("./routes/meetings");
+const moduleRoutes = require("./routes/modules");
 
 const app = express();
 
@@ -14,10 +12,8 @@ app.use(express.urlencoded({
 }))
 
 app.use("/api",studentRoutes)
-app.use("/api",moduleRoutes)
-app.use("/api",flagRoutes)
 app.use("/api",programRoutes)
-app.use("/api",meetingRoutes)
+app.use("/api",moduleRoutes)
 
 app.use(function (req, res, next) {
   const err = new Error("Not found");

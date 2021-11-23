@@ -115,17 +115,17 @@ const queryParamChecker = function (req) {
   const moduleQueryParams = addModuleQueryParams(req);
   const programQueryParams = addProgramQueryParams(req);
 
-if(req.path === "/students/")  {
 
-  if (req.method === "PUT") { putStudents(studentQueryParams, putStudentQueryBuilder) } else {
 
-    return getStudentsQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams);
+  return getQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams, req.path);
 
   }
-}
-}
 
-const getStudentsByQueryParams = function (req, queryParamChecker) {
+
+
+
+
+const getByQueryParams = function (req, queryParamChecker) {
 
   const sqlQuery = queryParamChecker(req);
 
@@ -141,8 +141,8 @@ const getStudentsByQueryParams = function (req, queryParamChecker) {
 
         if (err) reject(err);
         else {
-          const students = data;
-          resolve(students);
+          const returnedData = data;
+          resolve(returnedData);
         }
       })
     })
@@ -150,12 +150,34 @@ const getStudentsByQueryParams = function (req, queryParamChecker) {
   })
 }
 
-const getStudentsQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams) {
+const getQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams, reqPath) {
 
-  //Search by student,module and program - studentflag and meeting records not yet added.
-  return "SELECT DISTINCT student.studentNumber, student.firstName, student.lastName, student.DOB, student.admitTermID, student.currentLevel, student.startLevel, module.programCode FROM student JOIN studentmodule ON student.studentNumber = studentmodule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE " + studentQueryParams.join(' AND ')
-    + (moduleQueryParams.length > 0 ? "" + " AND " + moduleQueryParams.join(' AND ') : "")
-    + (programQueryParams.length > 0 ? "" + " AND " + programQueryParams.join(' AND ') : "")
+  if(reqPath === "/students/") {
+
+  return "SELECT DISTINCT student.studentNumber, student.firstName, student.lastName, student.DOB, student.admitTermID, student.currentLevel, student.startLevel, module.programCode FROM student JOIN studentmodule ON student.studentNumber = studentmodule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE "
+    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
+    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
+    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
+ 
+  }
+
+  if(reqPath === "/programs/") {
+    return "SELECT DISTINCT program.programCode, program.programDescription, program.academicLoadID , program.careerID , program.academicOrgID , program.academicPlanID , program.startTermID , program.campusID FROM program JOIN studentprogram ON program.programCode = studentprogram.programCode JOIN module ON studentprogram.programCode = module.programCode JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN student ON studentmodule.studentNumber = student.studentNumber WHERE "
+    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
+    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
+    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
+
+  }
+
+  
+  if(reqPath === "/modules/") {
+    x =  "SELECT DISTINCT module.catalogNumber, module.moduleDescription, module.moduleLevel, module.assessmentTypeID, module.sessionID, module.units, module.core, module.moduleTermID, module.programCode, module.subjectID FROM module JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN studentprogram ON studentmodule.studentNumber = studentprogram.studentNumber JOIN student ON studentprogram.studentNumber = student.studentNumber WHERE "
+    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
+    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
+    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
+    console.log(x)
+    return x
+  }
 
 }
 
@@ -202,7 +224,7 @@ const postStudents = function (req, postStudentsQueryParamChecker) {
   })
 }
 
-const putStudentQueryBuilder = function (req) {
+const putStudentQueryBuilder = function (studentQueryParams) {
 
 
   const studentNumber = studentQueryParams.filter(function (element) {
@@ -242,14 +264,15 @@ const putStudents = function (studentQueryParams, putStudentQueryBuilder) {
   })
 }
 
+
 module.exports = {
-  getStudentsByQueryParams,
-  getStudentsQueryBuilder,
+  getByQueryParams,
+  getQueryBuilder,
   queryParamChecker,
   postStudentsQueryParamChecker,
   postStudentQueryBuilder,
   postStudents,
   putStudents,
-  putStudentQueryBuilder
+  putStudentQueryBuilder,
 };
 

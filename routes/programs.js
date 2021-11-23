@@ -1,25 +1,36 @@
 const express = require('express')
-const programQueryHandler = ("../db/programQueries");
+const queryBuilder = require('../db/queryBuilder');
 
+var router = express.Router()
 
-var router = express.Router();
-
-router.get("/programs", async function (req, res, next) {
-    try {
-        const programs = await programQueryHandler.getPrograms();
+router.get("/programs/", async function (req, res, next) {
+    
+      try {
+        const programs = await queryBuilder.getByQueryParams(req, queryBuilder.queryParamChecker);
         res.send(programs);
-    } catch (err) {
-        next(err);
-    }
-})
-
-router.get("/programs/:programCode", async function (req, res, next) {
-    try {
-        const programs = await programQueryHandler.getProgramsByCode(req.params.programCode);
-        res.send(programs);
-    } catch (err) {
-        next(err);
-    }
-})
+      } catch (err) {
+        next(err)
+      }
+    
+    })
+    
+    router.post("/programs/", async function (req, res, next) {
+      
+      try {
+        await queryBuilder.postprograms(req, queryBuilder.postprogramsQueryParamChecker);
+      } catch (err) {
+        next(err)
+      }
+    })
+    
+    router.put("/programs/", async function (req, res, next) {
+    
+      try {
+        await queryBuilder.queryParamChecker(req);
+        res.send("OK");
+      } catch (err) {
+        next(err)
+      }
+    })
 
 module.exports = router;
