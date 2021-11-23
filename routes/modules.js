@@ -17,7 +17,7 @@ router.get("/modules/", async function (req, res, next) {
     router.post("/modules/", async function (req, res, next) {
       
       try {
-        await queryBuilder.postQueeries(req, queryBuilder.postmodulesQueryParamChecker);
+        await queryBuilder.postQueeries(req);
       res.send("OK")
     } catch (err) {
         next(err)

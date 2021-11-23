@@ -17,7 +17,7 @@ router.get("/programs/", async function (req, res, next) {
     router.post("/programs/", async function (req, res, next) {
       
       try {
-        await queryBuilder.postQueeries(req, queryBuilder.postprogramsQueryParamChecker);
+        await queryBuilder.postQueeries(req);
       res.send("OK")
     } catch (err) {
         next(err)

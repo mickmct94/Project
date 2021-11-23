@@ -34,16 +34,18 @@ router.post("/students/", async function (req, res, next) {
     res.send("OK")
   } catch (err) {
     next(err)
+
   }
 })
 
 router.put("/students/", async function (req, res, next) {
 
   try {
-    await queryBuilder.queryParamChecker(req);
+    await queryBuilder.putStudents(req, queryBuilder.putStudentQueryBuilder);
     res.send("OK");
   } catch (err) {
     next(err)
+
   }
 })
 

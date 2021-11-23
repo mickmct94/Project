@@ -118,7 +118,9 @@ const queryParamChecker = function (req) {
   const moduleQueryParams = addModuleQueryParams(req);
   const programQueryParams = addProgramQueryParams(req);
 
-
+if(req.method === "PUT") {
+  return studentQueryParams, moduleQueryParams, programQueryParams;
+}
 
   return getQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams, req.path);
 
@@ -170,12 +172,11 @@ const getQueryBuilder = function (studentQueryParams, moduleQueryParams, program
 
   
   if(reqPath === "/modules/") {
-    x =  "SELECT DISTINCT module.catalogNumber, module.moduleDescription, module.moduleLevel, module.assessmentTypeID, module.sessionID, module.units, module.core, module.moduleTermID, module.programCode, module.subjectID FROM module JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN studentprogram ON studentmodule.studentNumber = studentprogram.studentNumber JOIN student ON studentprogram.studentNumber = student.studentNumber WHERE "
+    return "SELECT DISTINCT module.catalogNumber, module.moduleDescription, module.moduleLevel, module.assessmentTypeID, module.sessionID, module.units, module.core, module.moduleTermID, module.programCode, module.subjectID FROM module JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN studentprogram ON studentmodule.studentNumber = studentprogram.studentNumber JOIN student ON studentprogram.studentNumber = student.studentNumber WHERE "
     + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
     + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
     + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
-    console.log(x)
-    return x
+  
   }
 
 }
@@ -234,9 +235,9 @@ const postQueeries = function (req) {
   })
 }
 
-const putStudentQueryBuilder = function (studentQueryParams) {
+const putStudentQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams) {
 
-
+if(studentQueryParams.length>0) {
   const studentNumber = studentQueryParams.filter(function (element) {
     if (element.includes("student.studentNumber")) { return true } else return false;
   })
@@ -246,12 +247,40 @@ const putStudentQueryBuilder = function (studentQueryParams) {
   })
 
   return "UPDATE student SET " + fieldsToUpdate.join(", ") + " WHERE " + studentNumber;
+}
+
+if(moduleQueryParams.length>0) {
+  const catalogNumber = moduleQueryParams.filter(function (element) {
+    if (element.includes("module.catalogNumber")) { return true } else return false;
+  })
+
+  const fieldsToUpdate = moduleQueryParams.filter(function (element) {
+    if (element.includes("module.catalogNumber")) { return false } else return true;
+  })
+
+  return "UPDATE module SET " + fieldsToUpdate.join(", ") + " WHERE " + catalogNumber;
 
 }
 
-const putStudents = function (studentQueryParams, putStudentQueryBuilder) {
+if(programQueryParams.length>0) {
+  const programCode = programQueryParams.filter(function (element) {
+    if (element.includes("program.programCode")) { return true } else return false;
+  })
 
-  const sqlQuery = putStudentQueryBuilder(studentQueryParams);
+  const fieldsToUpdate = programQueryParams.filter(function (element) {
+    if (element.includes("program.programCode")) { return false } else return true;
+  })
+
+  return "UPDATE program SET " + fieldsToUpdate.join(", ") + " WHERE " + programCode;
+
+}
+}
+
+const putStudents = function (req, putStudentQueryBuilder) {
+
+  const queryParams = queryParamChecker(req);
+
+  const sqlQuery = putStudentQueryBuilder(queryParams);
 
   return new Promise(function (resolve, reject) {
 
