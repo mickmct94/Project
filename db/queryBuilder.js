@@ -1,4 +1,3 @@
-const { query } = require("express");
 const dbPool = require("./config");
 
 const queryParamChecker = function (req) {
@@ -42,7 +41,7 @@ const queryParamChecker = function (req) {
       "module.moduleTermID = " + "'" + req.query.moduleTerm + "'",
       "module.programCode = " + "'" + req.query.moduleProgramCode + "'",
       "module.moduleSubjectID = " + "'" + req.query.moduleSubject + "'"
-    
+
     ]
 
     const moduleParamsfiltered = moduleSQLStrings.filter(function (element, index) {
@@ -114,19 +113,46 @@ const queryParamChecker = function (req) {
 
   }
 
-  const studentQueryParams = addStudentQueryParams(req);
-  const moduleQueryParams = addModuleQueryParams(req);
-  const programQueryParams = addProgramQueryParams(req);
+  const addStudentModuleParams = function (req) {
 
-if(req.method === "PUT") {
-  return studentQueryParams, moduleQueryParams, programQueryParams;
-}
 
-  return getQueryBuilder(studentQueryParams, moduleQueryParams, programQueryParams, req.path);
+
+    const studentModuleQueryParams = [req.query.moduleMark, req.query.moduleResult, req.query.moduleResitMark, req.query.moduleResitResult, req.query.moduleMarkGt, req.query.moduleMarkLt];
+
+    const studentModuleSQLStrings = [
+      "studentModule.mark = " + "'" + req.query.moduleMark + "'",
+      "studentModule.markResult = " + "'" + req.query.moduleResult + "'",
+      "studentModule.resitMark = " + "'" + req.query.moduleResitMark + "'",
+      "studentModule.resitResult = " + "'" + req.query.moduleResitResult + "'",
+      "studentModule.mark >= " + "'" + req.query.moduleMarkGt + "'",
+      "studentModule.mark <= " + "'" + req.query.moduleMarkLt + "'"
+    ]
+
+    const studentModuleParamsFiltered = studentModuleSQLStrings.filter(function (element, index) {
+      if (!studentModuleQueryParams[index]) { return false } else return true;
+    })
+
+    return studentModuleParamsFiltered;
 
   }
 
-const getByQueryParams = function (req, queryParamChecker) {
+  const params = {
+    studentQueryParams: addStudentQueryParams(req),
+    moduleQueryParams: addModuleQueryParams(req),
+    programQueryParams: addProgramQueryParams(req),
+    studentModuleQueryParams: addStudentModuleParams(req),
+    flagQueryParams: addFlagQueryParams(req)
+  }
+
+  if (req.method === "PUT") {
+    return params;
+  }
+
+  return getQueryBuilder(params, req.path);
+
+}
+
+const getByQueryParams = function (req) {
 
   const sqlQuery = queryParamChecker(req);
 
@@ -151,63 +177,110 @@ const getByQueryParams = function (req, queryParamChecker) {
   })
 }
 
-const getQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams, reqPath) {
+const getQueryBuilder = function (params, path) {
 
-  if(reqPath === "/students/") {
+  if (path === "/students") {
 
-  return "SELECT DISTINCT student.studentNumber, student.firstName, student.lastName, student.DOB, student.admitTermID, student.currentLevel, student.startLevel, module.programCode FROM student JOIN studentmodule ON student.studentNumber = studentmodule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE "
-    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
-    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
-    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
- 
+    return "SELECT DISTINCT student.studentNumber, student.firstName, student.lastName, student.DOB, student.admitTermID, student.currentLevel, student.startLevel, module.programCode FROM student JOIN studentmodule ON student.studentNumber = studentmodule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE "
+      + (params.studentQueryParams.length > 0 ? "" + params.studentQueryParams.join(' AND ') : "")
+      + (params.moduleQueryParams.length > 0 ? "" + params.moduleQueryParams.join(' AND ') : "")
+      + (params.programQueryParams.length > 0 ? "" + params.programQueryParams.join(' AND ') : "")
+
   }
 
-  if(reqPath === "/programs/") {
+  if (path === "/programs") {
     return "SELECT DISTINCT program.programCode, program.programDescription, program.academicLoadID , program.careerID , program.academicOrgID , program.academicPlanID , program.startTermID , program.campusID FROM program JOIN studentprogram ON program.programCode = studentprogram.programCode JOIN module ON studentprogram.programCode = module.programCode JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN student ON studentmodule.studentNumber = student.studentNumber WHERE "
-    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
-    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
-    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
+      + (params.programQueryParams.length > 0 ? "" + params.programQueryParams.join(' AND ') : "")
+      + (params.studentQueryParams.length > 0 ? "" + params.studentQueryParams.join(' AND ') : "")
+      + (params.moduleQueryParams.length > 0 ? "" + params.moduleQueryParams.join(' AND ') : "")
 
-  } 
-
-  
-  if(reqPath === "/modules/") {
-    return "SELECT DISTINCT module.catalogNumber, module.moduleDescription, module.moduleLevel, module.assessmentTypeID, module.sessionID, module.units, module.core, module.moduleTermID, module.programCode, module.subjectID FROM module JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN studentprogram ON studentmodule.studentNumber = studentprogram.studentNumber JOIN student ON studentprogram.studentNumber = student.studentNumber WHERE "
-    + (moduleQueryParams.length > 0 ?  "" + moduleQueryParams.join(' AND ') : "")
-    + (programQueryParams.length > 0 ? "" + programQueryParams.join(' AND ') : "")
-    + (studentQueryParams.length > 0 ? "" + studentQueryParams.join(' AND ') : "")
-  
   }
+
+
+  if (path === "/modules") {
+    return "SELECT DISTINCT module.catalogNumber, module.moduleDescription, module.moduleLevel, module.assessmentTypeID, module.sessionID, module.units, module.core, module.moduleTermID, module.programCode, module.subjectID FROM module JOIN studentmodule ON module.catalogNumber = studentmodule.catalogNumber JOIN studentprogram ON studentmodule.studentNumber = studentprogram.studentNumber JOIN student ON studentprogram.studentNumber = student.studentNumber WHERE "
+      + (params.moduleQueryParams.length > 0 ? "" + params.moduleQueryParams.join(' AND ') : "")
+      + (params.programQueryParams.length > 0 ? "" + params.programQueryParams.join(' AND ') : "")
+      + (params.studentQueryParams.length > 0 ? "" + params.studentQueryParams.join(' AND ') : "")
+
+  }
+
+  if (path === "/students/modules") {
+
+    return "SELECT DISTINCT studentmodule.studentNumber, student.firstName, student.lastName, studentmodule.catalogNumber, module.moduleDescription, module.units, studentmodule.mark, studentmodule.markResult, studentmodule.resitMark, studentmodule.resitResult, program.programCode FROM student JOIN studentModule ON student.studentNumber = studentModule.studentNumber JOIN module ON studentmodule.catalogNumber = module.catalogNumber JOIN program ON module.programCode = program.programCode WHERE "
+      + (params.studentQueryParams.length > 0 ? "" + params.studentQueryParams.join(' AND ') : "")
+      + (params.studentModuleQueryParams.length > 0 ? "" + params.studentModuleQueryParams.join(' AND ') : "")
+
+  }
+
+  if (path === "/students/flags") {
+    return "SELECT DISTINCT studentFlag.studentNumber, student.firstName, student.lastName, flag.flagDescription FROM student JOIN studentFlag ON student.studentNumber = studentFlag.studentNumber JOIN flag ON studentFlag.flagID = flag.flagID  WHERE "
+      + (params.studentQueryParams.length > 0 ? "" + params.studentQueryParams.join(' AND ') : "")
+
+  }
+
+
 
 }
 
 const postQueryBuilder = function (req) {
 
-if(req.method === "POST" && req.path === "/students/") {
+  const path = req.path;
+  const method = req.method;
 
-  const studentQueryParams = [req.query.studentNumber, req.query.fName, req.query.lName, req.query.DOB, req.query.admitTerm, req.query.email, req.query.currentLevel, req.query.startLevel];
+  if (method === "POST" && path === "/students") {
 
-  return "INSERT INTO student (`studentNumber`,`firstName`,`lastName`,`DOB`,`admitTermID`,`email`,`currentLevel`,`startLevel`) VALUES ("
-    + "'" + studentQueryParams.join("' ,'") + "')";
-}
+    const studentQueryParams = [req.query.studentNumber, req.query.fName, req.query.lName, req.query.DOB, req.query.admitTerm, req.query.email, req.query.currentLevel, req.query.startLevel];
 
-if(req.method === "POST" && req.path === "/modules/") {
- 
-  const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleUnits, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject, req.query.moduleProgramCode];
+    return "INSERT INTO student (studentNumber, firstName, lastName, DOB, admitTermID , email,currentLevel, startLevel) VALUES ("
+      + "'" + studentQueryParams.join("' ,'") + "')";
+  }
 
-  return "INSERT INTO `module` (`catalogNumber`, `moduleDescription`, `moduleLevel`, `units`, `assessmentTypeID`, `sessionID`, `core`, `moduleTermID`, `subjectID`, `programCode`) VALUES ("
-  + "'" + moduleQueryParams.join("' ,'") + "')";
+  if (method === "POST" && path === "/modules") {
 
-}
+    const moduleQueryParams = [req.query.moduleCatalogNumber, req.query.moduleDescription, req.query.moduleLevel, req.query.moduleUnits, req.query.moduleAssessmentType, req.query.moduleSession, req.query.moduleCore, req.query.moduleTerm, req.query.moduleSubject, req.query.moduleProgramCode];
 
-if(req.method === "POST" && req.path === "/programs/") {
- 
-  const programQueryParams = [req.query.programCode, req.query.programDescription, req.query.programAcademicLoad, req.query.programCareer, req.query.programAcademicOrg, req.query.programAcademicPlan, req.query.programStartTerm, req.query.programCampus];
+    return "INSERT INTO module (catalogNumber, moduleDescription, moduleLevel, units, assessmentTypeID, sessionID, core, moduleTermID, subjectID, programCode) VALUES ("
+      + "'" + moduleQueryParams.join("' ,'") + "')";
 
-  return "INSERT INTO `program` (`programCode`, `programDescription`, `academicLoadID`, `careerID`, `academicOrgID`, `academicPlanID`, `startTermID`, `campusID`) VALUES ("
-    + "'" + programQueryParams.join("' ,'") + "')";
-}
-  
+  }
+
+  if (method === "POST" && path === "/programs") {
+
+    const programQueryParams = [req.query.programCode, req.query.programDescription, req.query.programAcademicLoad, req.query.programCareer, req.query.programAcademicOrg, req.query.programAcademicPlan, req.query.programStartTerm, req.query.programCampus];
+
+    return "INSERT INTO program (programCode, programDescription, academicLoadID, careerID, academicOrgID, academicPlanID, startTermID, campusID) VALUES ("
+      + "'" + programQueryParams.join("' ,'") + "')";
+  }
+
+  if (method === "POST" && path === "/students/modules") {
+
+    studentModuleQueryParams = [req.query.studentNumber, req.query.moduleCatalogNumber, req.query.moduleMark, req.query.moduleMarkResult, req.query.moduleResitMark, req.query.moduleResitResult]
+
+    return "INSERT INTO studentmodule (studentModule.studentNumber, studentModule.catalogNumber, studentModule.mark, studentModule.markResult, studentModule.resitMark, studentModule.resitResult) VALUES ("
+      + "'" + studentModuleQueryParams.join("' ,'") + "')";
+
+  }
+
+  if (method === "POST" && path === "/students/programs") {
+
+    const studentProgramQueryParams = [req.query.studentNumber, req.query.programCode]
+
+    return "INSERT INTO studentprogram (studentProgram.studentNumber, studentProgram.programCode) VALUES ("
+      + "'" + studentProgramQueryParams.join("' ,'") + "')";
+
+  }
+
+  if (method === "POST" && path === "/students/flags") {
+
+    const studentFlagsQueryParams = [req.query.studentNumber, req.query.flagID]
+    console.log(studentFlagsQueryParams)
+    var q = "INSERT INTO studentflag (studentFlag.studentNumber, studentFlag.FlagID) VALUES ("
+      + "'" + studentFlagsQueryParams.join("' ,'") + "')";
+    console.log(q)
+    return q;
+  }
+
 }
 
 const postQueeries = function (req) {
@@ -235,52 +308,121 @@ const postQueeries = function (req) {
   })
 }
 
-const putStudentQueryBuilder = function (studentQueryParams, moduleQueryParams, programQueryParams) {
+const putQueryBuilder = function (params, path) {
 
-if(studentQueryParams.length>0) {
-  const studentNumber = studentQueryParams.filter(function (element) {
-    if (element.includes("student.studentNumber")) { return true } else return false;
-  })
+  if (path === "/students") {
 
-  const fieldsToUpdate = studentQueryParams.filter(function (element) {
-    if (element.includes("student.studentNumber")) { return false } else return true;
-  })
+    const studentNumber = params.studentQueryParams.filter(function (element) {
 
-  return "UPDATE student SET " + fieldsToUpdate.join(", ") + " WHERE " + studentNumber;
+      if (element.includes("student.studentNumber")) { return true } else return false;
+    })
+
+    const fieldsToUpdate = params.studentQueryParams.filter(function (element) {
+      if (element.includes("student.studentNumber")) { return false } else return true;
+    })
+
+    return "UPDATE student SET " + fieldsToUpdate.join(", ") + " WHERE " + studentNumber;
+  }
+
+
+  if (path === "/modules") {
+
+    const catalogNumber = params.moduleQueryParams.filter(function (element) {
+      if (element.includes("module.catalogNumber")) { return true } else return false;
+    })
+
+    const fieldsToUpdate = params.moduleQueryParams.filter(function (element) {
+      if (element.includes("module.catalogNumber")) { return false } else return true;
+    })
+
+    return "UPDATE module SET " + fieldsToUpdate.join(", ") + " WHERE " + catalogNumber;
+
+  }
+
+  if (path === "/programs") {
+
+    const programCode = params.programQueryParams.filter(function (element) {
+      if (element.includes("program.programCode")) { return true } else return false;
+    })
+
+    const fieldsToUpdate = params.programQueryParams.filter(function (element) {
+      if (element.includes("program.programCode")) { return false } else return true;
+    })
+
+    return "UPDATE program SET " + fieldsToUpdate.join(", ") + " WHERE " + programCode;
+
+  }
+
+  if (path === "/students/modules") {
+
+    let studentNumber = params.studentQueryParams.filter(function (element) {
+      if (element.includes("student.studentNumber")) { return true } else return false;
+    }).toString();
+
+    const trimmedStudentNumber = studentNumber.slice(studentNumber.lastIndexOf("s"));
+
+    const fieldsToUpdate = params.studentModuleQueryParams;
+
+    return "UPDATE studentModule SET " + fieldsToUpdate.join(", ") + " WHERE " + trimmedStudentNumber;
+
+  }
+
+
+  if (path === "/students/programs") {
+
+    let studentNumber = params.studentQueryParams.filter(function (element) {
+      if (element.includes("student.studentNumber")) { return true } else return false;
+    }).toString();
+
+    const fieldsToUpdate = params.programQueryParams.filter(function (element) {
+      if (element.includes("program.programCode")) { return true } else return false;
+    });
+
+    fieldsToUpdate.push(studentNumber)
+
+    const trimmedFieldsToUpdate = fieldsToUpdate.map(function (element) {
+      if (element.includes("student.studentNumber")) {
+        return element.slice(element.lastIndexOf("s"));
+      } else {
+        return element.slice(element.lastIndexOf("p"));
+      }
+    });
+
+    return "UPDATE studentProgram SET " + trimmedFieldsToUpdate.join(", ") + " WHERE " + trimmedFieldsToUpdate[trimmedFieldsToUpdate.length - 1];
+
+  }
+
+  if (path === "/students/flags") {
+
+    const studentNumber = params.studentQueryParams.filter(function (element) {
+      if (element.includes("student.studentNumber")) { return true } else return false;
+    }).toString();
+
+    const fieldsToUpdate = params.flagQueryParams.filter(function (element) {
+      if (element.includes("flag.flagID")) { return true } else return false;
+    });
+
+    fieldsToUpdate.push(studentNumber)
+
+    const trimmedFieldsToUpdate = fieldsToUpdate.map(function (element) {
+      if (element.includes("student.studentNumber")) {
+        return element.slice(element.lastIndexOf("s"));
+      } else {
+        return element.slice(element.lastIndexOf("f"))
+      }
+    });
+
+    console.log(trimmedFieldsToUpdate[trimmedFieldsToUpdate.length - 1])
+
+    return "UPDATE studentFlag SET " + trimmedFieldsToUpdate.join(", ") + " WHERE " + trimmedFieldsToUpdate[trimmedFieldsToUpdate.length - 1];
+  }
 }
 
-if(moduleQueryParams.length>0) {
-  const catalogNumber = moduleQueryParams.filter(function (element) {
-    if (element.includes("module.catalogNumber")) { return true } else return false;
-  })
+const putByQueryParams = function (req) {
 
-  const fieldsToUpdate = moduleQueryParams.filter(function (element) {
-    if (element.includes("module.catalogNumber")) { return false } else return true;
-  })
+  const params = queryParamChecker(req);
 
-  return "UPDATE module SET " + fieldsToUpdate.join(", ") + " WHERE " + catalogNumber;
-
-}
-
-if(programQueryParams.length>0) {
-  const programCode = programQueryParams.filter(function (element) {
-    if (element.includes("program.programCode")) { return true } else return false;
-  })
-
-  const fieldsToUpdate = programQueryParams.filter(function (element) {
-    if (element.includes("program.programCode")) { return false } else return true;
-  })
-
-  return "UPDATE program SET " + fieldsToUpdate.join(", ") + " WHERE " + programCode;
-
-}
-}
-
-const putStudents = function (req, putStudentQueryBuilder) {
-
-  const queryParams = queryParamChecker(req);
-
-  const sqlQuery = putStudentQueryBuilder(queryParams);
+  const sqlQuery = putQueryBuilder(params, req.path);
 
   return new Promise(function (resolve, reject) {
 
@@ -310,7 +452,7 @@ module.exports = {
   queryParamChecker,
   postQueryBuilder,
   postQueeries,
-  putStudents,
-  putStudentQueryBuilder,
+  putByQueryParams,
+  putQueryBuilder,
 };
 

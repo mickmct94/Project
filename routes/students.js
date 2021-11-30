@@ -16,7 +16,7 @@ function asyncErrHandler(callBack) {
 }
 
 //GET STUDENTS BY QUERY PARAMS
-router.get("/students/", async function (req, res, next) {
+router.get("/students", async function (req, res, next) {
 
   try {
     const students = await queryBuilder.getByQueryParams(req, queryBuilder.queryParamChecker);
@@ -27,8 +27,8 @@ router.get("/students/", async function (req, res, next) {
 
 })
 
-router.post("/students/", async function (req, res, next) {
-  
+router.post("/students", async function (req, res, next) {
+
   try {
     await queryBuilder.postQueeries(req);
     res.send("OK")
@@ -38,10 +38,10 @@ router.post("/students/", async function (req, res, next) {
   }
 })
 
-router.put("/students/", async function (req, res, next) {
+router.put("/students", async function (req, res, next) {
 
   try {
-    await queryBuilder.putStudents(req, queryBuilder.putStudentQueryBuilder);
+    await queryBuilder.putByQueryParams(req, queryBuilder.putQueryBuilder);
     res.send("OK");
   } catch (err) {
     next(err)
