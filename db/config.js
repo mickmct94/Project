@@ -8,4 +8,31 @@ const pool = mysql.createPool({
     database: "test"
 })
 
-module.exports = pool;
+const dbQuery = function(query) {
+
+return new Promise(function (resolve, reject) {
+
+    pool.getConnection(function (err, connection) {
+
+      if (err) reject(err);
+
+      connection.query(query, function (err, data) {
+
+        connection.release();
+
+        if (err) reject(err);
+        else {
+
+          const returnedData = data;
+          resolve(returnedData);
+
+        }
+      })
+    })
+
+  })
+}
+module.exports = {
+    pool,
+    dbQuery
+}

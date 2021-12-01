@@ -1,6 +1,6 @@
-const { query } = require('express');
 const express = require('express');
-const queryBuilder = require('../db/queryBuilder');
+const queryBuilder = require('../queryBuilders/queryBuilder');
+const paramChecker = require("../queryBuilders/paramChecker");
 
 var router = express.Router()
 
@@ -19,7 +19,7 @@ function asyncErrHandler(callBack) {
 router.get("/students", async function (req, res, next) {
 
   try {
-    const students = await queryBuilder.getByQueryParams(req, queryBuilder.queryParamChecker);
+    const students = await queryBuilder.getByQueryParams(req, paramChecker);
     res.send(students);
   } catch (err) {
     next(err)
@@ -41,7 +41,7 @@ router.post("/students", async function (req, res, next) {
 router.put("/students", async function (req, res, next) {
 
   try {
-    await queryBuilder.putByQueryParams(req, queryBuilder.putQueryBuilder);
+    await queryBuilder.putByQueryParams(req, paramChecker);
     res.send("OK");
   } catch (err) {
     next(err)
